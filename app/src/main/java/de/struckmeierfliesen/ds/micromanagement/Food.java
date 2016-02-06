@@ -73,7 +73,11 @@ public class Food {
         this.lastEaten = lastEaten;
     }
 
-    public String getLastEatenDate() {
+    public Date getLastEatenDate() {
+        return new Date(lastEaten);
+    }
+
+    public String getLastEatenDateString() {
         Date date = new Date(lastEaten);
         if (lastEaten == -1)
             return "never"; // TODO: translation
@@ -111,6 +115,6 @@ public class Food {
 
     @Override
     public String toString() {
-        return getName() + "(" + getId() + ") is " + getType() + " last eaten at: " + getLastEatenDate();
+        return getName() + "(" + getId() + ") is " + getType() + " last eaten at: " + getLastEatenDateString();
     }
 }

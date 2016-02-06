@@ -1,10 +1,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MainActivity">
+    tools:context=".SelectionActivity">
     <item
-        android:id="@+id/action_clear_history"
+        android:id="@+id/action_confirm"
         android:orderInCategory="100"
-        android:title="@string/clear_history"
-        app:showAsAction="never" />
+        android:title="@string/confirm"
+        android:icon="@drawable/ic_done_white_24dp"
+        app:showAsAction="always" />
 </menu>

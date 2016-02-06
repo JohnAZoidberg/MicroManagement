@@ -64,9 +64,8 @@ public class FoodFragment extends Fragment {
         List<Food> items = activity.loadFood(type);
 
         // Set the adapter
-        Context context = view.getContext();
-        RecyclerView recyclerView = (RecyclerView) view;
-        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
         adapter = new MyFoodRecyclerViewAdapter(items, mListener);
         recyclerView.setAdapter(adapter);
         return view;

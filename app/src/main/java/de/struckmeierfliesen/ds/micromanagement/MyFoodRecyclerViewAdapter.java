@@ -41,7 +41,7 @@ public class MyFoodRecyclerViewAdapter extends RecyclerView.Adapter<MyFoodRecycl
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mLastEatenView.setText(holder.mItem.getLastEatenDate());
+        holder.mLastEatenView.setText(holder.mItem.getLastEatenDateString());
         holder.mFoodView.setText(holder.mItem.getEatenThisWeek() + " " + holder.mItem.getName());
         switch (holder.mItem.getEatenThisWeek()) {
             case 0:

@@ -5,6 +5,7 @@ import android.text.format.DateFormat;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class Util {
@@ -35,26 +36,49 @@ public class Util {
         return c.getTime();
     }
 
+    public static String getDayAbbrev(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int day = calendar.get(Calendar.DAY_OF_WEEK);
+        String[] days;
+        if (Locale.getDefault().getCountry().equals(Locale.GERMAN.getCountry())) {
+            days = new String[]{"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"};
+        } else {
+            days = new String[]{"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"};
+        }
+        return days[day - 1];
+    }
+
     public static int getDayDifference(Date date1, Date date2) {
         /*if (isSameDay(date1, date2)) return 0;
         else if (isSameDay(addDays(date1, 1), date2)) return -1;
         else if (isSameDay(addDays(date1, -1), date2)) return 1;
         else {*/
-            date1 = dateAtMidnight(date1);
-            date2 = dateAtMidnight(date2);
+            date1 = getStartOfDay(date1);
+            date2 = getStartOfDay(date2);
             long diffInMillies = date1.getTime() - date2.getTime();
             return (int) TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
         //}
     }
 
-    public static Date dateAtMidnight(Date date) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        return cal.getTime();
+    public static Date getEndOfDay(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
+        return calendar.getTime();
+    }
+
+    public static Date getStartOfDay(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 
     @NonNull
@@ -67,5 +91,10 @@ public class Util {
             default:
                 return DateFormat.format("EEEE", date).toString();
         }
+    }
+
+    public static String formatDate(Date date) {
+        if (date == null) return "null";
+        return DateFormat.format("dd.MM.yy", date).toString();
     }
 }

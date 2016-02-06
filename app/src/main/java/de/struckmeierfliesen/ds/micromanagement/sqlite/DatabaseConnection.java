@@ -12,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -34,6 +33,8 @@ import static de.struckmeierfliesen.ds.micromanagement.sqlite.MySqliteHelper.TAB
 import static de.struckmeierfliesen.ds.micromanagement.sqlite.MySqliteHelper.TABLE_FOOD;
 
 public class DatabaseConnection {
+    private static final int DAY_RANGE = 7;
+
     // Database fields
     private SQLiteDatabase database;
     private MySqliteHelper dbHelper;
@@ -137,14 +138,20 @@ public class DatabaseConnection {
             e.printStackTrace();
         }
     }
+    public static Food cursorToFood(Cursor cursor) {
+        return cursorToFood(cursor, -1, true);
+    }
 
     public static Food cursorToFood(Cursor cursor, int type) {
         return cursorToFood(cursor, type, true);
     }
 
-    public static Food cursorToFood(Cursor cursor, int type, boolean eaten) {
+    private static Food cursorToFood(Cursor cursor, int type, boolean eaten) {
         int id = cursor.getInt(cursor.getColumnIndex(FOOD_COLUMN_ID));
         String name = cursor.getString(cursor.getColumnIndex(FOOD_COLUMN_NAME));
+        if (type == -1) {
+            type = cursor.getInt(cursor.getColumnIndex(FOOD_COLUMN_TYPE)); // TODO do automatically and not with -1
+        }
         if (eaten) {
             long lastEaten = cursor.getLong(cursor.getColumnIndex(EATEN_COLUMN_LAST_EATEN));
             return new Food(id, name, type, lastEaten, 1);
@@ -153,7 +160,52 @@ public class DatabaseConnection {
         }
     }
 
-    public List<Food> loadFood(int type) {
+    public List<Food> loadFood(Date date) {
+        open();
+        // Determine the earliest date for the query
+        long earliestDate = Util.getStartOfDay(Util.addDays(date, -DAY_RANGE)).getTime();
+        long latestDate = Util.getEndOfDay(date).getTime();
+
+        // Load food eating times
+        Cursor eatenCursor = database.rawQuery(
+                "SELECT " +
+                        TABLE_FOOD + "." + FOOD_COLUMN_ID + ", " +
+                        TABLE_FOOD + "." + FOOD_COLUMN_NAME + ", " +
+                        TABLE_EATEN + "." + EATEN_COLUMN_LAST_EATEN + ", " +
+                        TABLE_FOOD + "." + FOOD_COLUMN_TYPE + ", " +
+                        TABLE_EATEN + "." + EATEN_COLUMN_ID + // TODO: Unnecessary
+                        " FROM " + TABLE_FOOD + ", " + TABLE_EATEN +
+                        " WHERE " +
+                        TABLE_FOOD + "." + FOOD_COLUMN_ID + " = " + TABLE_EATEN + "." + EATEN_COLUMN_FOOD_ID +
+                        " AND " +
+                        TABLE_EATEN + "." + EATEN_COLUMN_LAST_EATEN + " > " + earliestDate +
+                        " AND " +
+                        TABLE_EATEN + "." + EATEN_COLUMN_LAST_EATEN + " < " + latestDate +
+                        " ORDER BY " +
+                        TABLE_EATEN + "." + EATEN_COLUMN_LAST_EATEN + " DESC"
+                , null);
+        Map<Integer, Food> foods = new LinkedHashMap<>();
+        MySqliteHelper.displayCursor(eatenCursor, false, "eatenCursor");
+        if (eatenCursor != null && eatenCursor.moveToFirst()) {
+            while (!eatenCursor.isAfterLast()) {
+                Food food = cursorToFood(eatenCursor);
+                int id = food.getId();
+                if (foods.containsKey(id)) {
+                    food = foods.get(id);
+                    food.incrementEatenThisWeek();
+                } else if (Util.isSameDay(date, food.getLastEatenDate())) {
+                    foods.put(id, food);
+                }
+                eatenCursor.moveToNext();
+            }
+            eatenCursor.close();
+        }
+
+        close();
+        return new ArrayList<Food>(foods.values());
+    }
+
+    public List<Food> loadFood(int type, Date date) {
         open();
         // Determine the type selection
         String where = TABLE_FOOD + "." + FOOD_COLUMN_TYPE;
@@ -163,7 +215,8 @@ public class DatabaseConnection {
             where += " = " + type;
         }
         // Determine the earliest date for the query
-        long earliestDate = Util.dateAtMidnight(Util.addDays(new Date(), -7)).getTime();
+        long earliestDate = Util.getStartOfDay(Util.addDays(date, -DAY_RANGE)).getTime();
+        long latestDate = Util.getEndOfDay(date).getTime();
 
         // Load food eating times
         Cursor eatenCursor = database.rawQuery(
@@ -179,6 +232,8 @@ public class DatabaseConnection {
                         TABLE_FOOD + "." + FOOD_COLUMN_ID + " = " + TABLE_EATEN + "." + EATEN_COLUMN_FOOD_ID +
                         " AND " +
                         TABLE_EATEN + "." + EATEN_COLUMN_LAST_EATEN + " > " + earliestDate +
+                        " AND " +
+                        TABLE_EATEN + "." + EATEN_COLUMN_LAST_EATEN + " < " + latestDate +
                         " ORDER BY " +
                         TABLE_EATEN + "." + EATEN_COLUMN_LAST_EATEN + " DESC"
                 , null);
@@ -191,6 +246,8 @@ public class DatabaseConnection {
                 if (foods.containsKey(id)) {
                     food = foods.get(id);
                     food.incrementEatenThisWeek();
+                } else if (Util.isSameDay(date, food.getLastEatenDate())) {
+                    foods.put(id, food);
                 }
                 foods.put(id, food);
                 eatenCursor.moveToNext();
@@ -198,7 +255,7 @@ public class DatabaseConnection {
             eatenCursor.close();
         }
 
-        // Load foods
+        // Load foods that have not yet been eaten
         Cursor foodCursor = database.rawQuery(
                 "SELECT " +
                         FOOD_COLUMN_ID + ", " +
@@ -223,10 +280,10 @@ public class DatabaseConnection {
         return new ArrayList<Food>(foods.values());
     }
 
-    public void eatFood(Food food) {
+    public void eatFood(Food food, Date date) {
         open();
         ContentValues values = new ContentValues();
-        values.put(EATEN_COLUMN_LAST_EATEN, Calendar.getInstance().getTimeInMillis());
+        values.put(EATEN_COLUMN_LAST_EATEN, date.getTime());
         values.put(EATEN_COLUMN_FOOD_ID, food.getId());
         database.insert(TABLE_EATEN, null, values);
         close();
@@ -242,7 +299,6 @@ public class DatabaseConnection {
     }
 
     public void clearHistory() {
-        //dropDatabase(context);
         open();
         database.execSQL("DELETE FROM " + TABLE_EATEN);
         database.execSQL("VACUUM");

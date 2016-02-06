@@ -4,4 +4,8 @@
     <string name="no">No</string>
     <string name="yes">Yes</string>
     <string name="cancel">Cancel</string>
+    <string name="day_scroll_limit">Days more than %d days in the past or future cannot be selected!.</string>
+    <string name="selection">Selection</string>
+    <string name="no_entries">No entries</string>
+    <string name="confirm">Confirm</string>
 </resources>
