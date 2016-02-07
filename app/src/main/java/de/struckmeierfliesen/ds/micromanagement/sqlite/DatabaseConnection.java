@@ -18,8 +18,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.struckmeierfliesen.ds.calendarpager.DateUtil;
 import de.struckmeierfliesen.ds.micromanagement.Food;
-import de.struckmeierfliesen.ds.micromanagement.Util;
 
 import static de.struckmeierfliesen.ds.micromanagement.sqlite.MySqliteHelper.DATABASE_NAME;
 import static de.struckmeierfliesen.ds.micromanagement.sqlite.MySqliteHelper.EATEN_COLUMN_FOOD_ID;
@@ -38,10 +38,8 @@ public class DatabaseConnection {
     // Database fields
     private SQLiteDatabase database;
     private MySqliteHelper dbHelper;
-    private final Context context;
 
     public DatabaseConnection(Context context) {
-        this.context = context;
         dbHelper = new MySqliteHelper(context);
     }
 
@@ -163,8 +161,8 @@ public class DatabaseConnection {
     public List<Food> loadFood(Date date) {
         open();
         // Determine the earliest date for the query
-        long earliestDate = Util.getStartOfDay(Util.addDays(date, -DAY_RANGE)).getTime();
-        long latestDate = Util.getEndOfDay(date).getTime();
+        long earliestDate = DateUtil.getStartOfDay(DateUtil.addDays(date, -DAY_RANGE)).getTime();
+        long latestDate = DateUtil.getEndOfDay(date).getTime();
 
         // Load food eating times
         Cursor eatenCursor = database.rawQuery(
@@ -193,7 +191,7 @@ public class DatabaseConnection {
                 if (foods.containsKey(id)) {
                     food = foods.get(id);
                     food.incrementEatenThisWeek();
-                } else if (Util.isSameDay(date, food.getLastEatenDate())) {
+                } else if (DateUtil.isSameDay(date, food.getLastEatenDate())) {
                     foods.put(id, food);
                 }
                 eatenCursor.moveToNext();
@@ -215,8 +213,8 @@ public class DatabaseConnection {
             where += " = " + type;
         }
         // Determine the earliest date for the query
-        long earliestDate = Util.getStartOfDay(Util.addDays(date, -DAY_RANGE)).getTime();
-        long latestDate = Util.getEndOfDay(date).getTime();
+        long earliestDate = DateUtil.getStartOfDay(DateUtil.addDays(date, -DAY_RANGE)).getTime();
+        long latestDate = DateUtil.getEndOfDay(date).getTime();
 
         // Load food eating times
         Cursor eatenCursor = database.rawQuery(
@@ -246,7 +244,7 @@ public class DatabaseConnection {
                 if (foods.containsKey(id)) {
                     food = foods.get(id);
                     food.incrementEatenThisWeek();
-                } else if (Util.isSameDay(date, food.getLastEatenDate())) {
+                } else if (DateUtil.isSameDay(date, food.getLastEatenDate())) {
                     foods.put(id, food);
                 }
                 foods.put(id, food);

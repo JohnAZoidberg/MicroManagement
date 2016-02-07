@@ -1,12 +1,13 @@
 package de.struckmeierfliesen.ds.micromanagement;
 
-import android.text.format.DateFormat;
 import android.util.Log;
 
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import de.struckmeierfliesen.ds.calendarpager.DateUtil;
 
 public class Food {
     public static final int PROTEINS = 1;
@@ -81,10 +82,10 @@ public class Food {
         Date date = new Date(lastEaten);
         if (lastEaten == -1)
             return "never"; // TODO: translation
-        else if (Util.getDayDifference(new Date(), date) <= 7)
-            return Util.getWeekday(date);
+        else if (DateUtil.getDayDifference(new Date(), date) <= 7)
+            return DateUtil.getWeekday(date);
         else
-            return DateFormat.format("dd.MM.yy", date).toString();
+            return DateUtil.formatDate(date);
     }
 
     public int getEatenThisWeek() {

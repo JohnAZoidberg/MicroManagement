@@ -13,12 +13,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import de.struckmeierfliesen.ds.micromanagement.calendar.CalendarUtil;
+import de.struckmeierfliesen.ds.calendarpager.Calendar;
 import de.struckmeierfliesen.ds.micromanagement.sqlite.DatabaseConnection;
 
 public class MainActivity extends AppCompatActivity {
     ViewPager.OnPageChangeListener onPageChangeListener;
-    CalendarUtil calendar;
+    Calendar calendar;
     private DatabaseConnection dbConn;
 
     @Override
@@ -36,10 +36,9 @@ public class MainActivity extends AppCompatActivity {
         if (supportActionBar != null) supportActionBar.setDisplayShowTitleEnabled(false);
 
         // set up ViewPager for the days
-        calendar = new CalendarUtil(this, (ViewPager) findViewById(R.id.dayPager), FoodDayFragment.class);
+        calendar = new Calendar(this, (ViewPager) findViewById(R.id.dayPager), FoodDayFragment.class);
         TextView changeDateButton = (TextView) findViewById(R.id.changeDate);
-        calendar.setChangeDateButton(changeDateButton,
-                new int[] {0xFFFFFFFF, ContextCompat.getColor(this, R.color.colorAccent)});
+        calendar.setChangeDateButton(changeDateButton, 0xFFFFFFFF, ContextCompat.getColor(this, R.color.colorAccent));
 
         // set up FAB
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);

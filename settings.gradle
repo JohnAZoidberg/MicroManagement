@@ -1,1 +1,3 @@
 include ':app'
+include ':calendarpager'
+project(':calendarpager').projectDir = new File(settingsDir, '../CalendarPager')

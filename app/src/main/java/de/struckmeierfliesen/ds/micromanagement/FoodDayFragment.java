@@ -11,25 +11,29 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.struckmeierfliesen.ds.micromanagement.calendar.DayFragment;
+import de.struckmeierfliesen.ds.calendarpager.DateUtil;
+import de.struckmeierfliesen.ds.calendarpager.DayFragment;
 import de.struckmeierfliesen.ds.micromanagement.sqlite.DatabaseConnection;
 
 public class FoodDayFragment extends DayFragment {
     private List<Food> items;
     private MyFoodRecyclerViewAdapter entryListAdapter;
+    private DatabaseConnection dbConn;
 
     @NonNull
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        super.onCreateView(inflater, container, savedInstanceState);
+        View rootView = inflater.inflate(R.layout.fragment_food_list, container, false);
         EmptyRecyclerView recyclerView = (EmptyRecyclerView) rootView.findViewById(R.id.list);
+        dbConn = new DatabaseConnection(getContext());
         updateContents();
         // Set the adapter
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         entryListAdapter = new MyFoodRecyclerViewAdapter(items, null);
         recyclerView.setAdapter(entryListAdapter);
         TextView emptyView = (TextView) rootView.findViewById(R.id.empty);
-        emptyView.setText(Util.formatDate(getDate()));
+        emptyView.setText(DateUtil.formatDate(getDate()));
         recyclerView.setEmptyView(emptyView);
 
         return rootView;
@@ -37,7 +41,6 @@ public class FoodDayFragment extends DayFragment {
 
     @Override
     public void updateContents() {
-        DatabaseConnection dbConn = new DatabaseConnection(getContext());
         if (items == null) {
             items = new ArrayList<>();
         } else {
