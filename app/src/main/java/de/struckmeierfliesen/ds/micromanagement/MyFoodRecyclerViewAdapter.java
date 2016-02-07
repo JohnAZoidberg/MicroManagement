@@ -94,9 +94,7 @@ public class MyFoodRecyclerViewAdapter extends RecyclerView.Adapter<MyFoodRecycl
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (null != mListener) {
-                    // Notify the active callbacks interface (the activity, if the
-                    // fragment is attached to one) that an item has been selected.
+                if (mListener != null) {
                     mListener.onListFragmentInteraction(holder.mItem);
                 }
             }
@@ -104,7 +102,9 @@ public class MyFoodRecyclerViewAdapter extends RecyclerView.Adapter<MyFoodRecycl
         holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                mListener.onListFragmentLongInteraction(holder.mItem);
+                if (mListener != null) {
+                    mListener.onListFragmentLongInteraction(holder.mItem);
+                }
                 return true;
             }
         });

@@ -15,8 +15,12 @@ public class Food {
     public static final int FATS = 4;
     public static final int VEGGIES = 8;
     public static final int FRUITS = 16;
+    /**
+     * This field is only used to query hidden foods and it is not a valid type!
+     * @see de.struckmeierfliesen.ds.micromanagement.sqlite.DatabaseConnection#loadFood(int, Date)
+     */
     public static final int HIDDEN = 32;
-    private static final Set<Integer> types = new HashSet<Integer>(Arrays.asList(PROTEINS, CARBS, FATS, VEGGIES, FRUITS, HIDDEN));
+    private static final Set<Integer> types = new HashSet<Integer>(Arrays.asList(PROTEINS, CARBS, FATS, VEGGIES, FRUITS));
 
     private int id;
     private String name;
@@ -56,12 +60,16 @@ public class Food {
     }
 
     public int getType() {
+        if (isHidden(type)) return -type;
         return type;
     }
 
     public void setType(int type) {
-        if (!isValidType(type)) throw illegalFoodTypeExcpetion(type);
-        if (type == HIDDEN) Log.w("Food", "This Food is hidden with type " + (-1 * type));
+        if (isHidden(type)) {
+            Log.w("Food", "This Food is hidden with type " + (-type) + "(" + toString() + ")");
+        } else if (!isValidType(type)) {
+            throw illegalFoodTypeExcpetion(type);
+        }
         this.type = type;
     }
 
@@ -116,6 +124,14 @@ public class Food {
 
     @Override
     public String toString() {
-        return getName() + "(" + getId() + ") is " + getType() + " last eaten at: " + getLastEatenDateString();
+        return getName() + " (ID: " + getId() + ") is of type " + getType() + " and was last eaten: " + getLastEatenDateString();
+    }
+
+    public boolean isHidden() {
+        return isHidden(type);
+    }
+
+    public static boolean isHidden(int type) {
+        return isValidType(-type);
     }
 }

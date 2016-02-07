@@ -110,7 +110,7 @@ public class FoodFragment extends Fragment {
 
     public void updateList() {
         //items.add(items.size(), items.remove(0));
-        // TODO: Dont do it like this
+        // TODO: Only update what has changed
         List<Food> foods = activity.loadFood(type);
         adapter.newItems(foods);
     }

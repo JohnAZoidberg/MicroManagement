@@ -136,12 +136,16 @@ public class DatabaseConnection {
             e.printStackTrace();
         }
     }
-    public static Food cursorToFood(Cursor cursor) {
+    private static Food cursorToFood(Cursor cursor) {
         return cursorToFood(cursor, -1, true);
     }
 
-    public static Food cursorToFood(Cursor cursor, int type) {
+    private static Food cursorToFood(Cursor cursor, int type) {
         return cursorToFood(cursor, type, true);
+    }
+
+    private static Food cursorToFood(Cursor cursor, boolean eaten) {
+        return cursorToFood(cursor, -1, eaten);
     }
 
     private static Food cursorToFood(Cursor cursor, int type, boolean eaten) {
@@ -207,7 +211,7 @@ public class DatabaseConnection {
         open();
         // Determine the type selection
         String where = TABLE_FOOD + "." + FOOD_COLUMN_TYPE;
-        if (type == Food.HIDDEN) {
+        if (type == Food.HIDDEN ||Food.isHidden(type)) {
             where += " < 0";
         } else {
             where += " = " + type;
@@ -221,8 +225,9 @@ public class DatabaseConnection {
                 "SELECT " +
                         TABLE_FOOD + "." + FOOD_COLUMN_ID + ", " +
                         TABLE_FOOD + "." + FOOD_COLUMN_NAME + ", " +
-                        TABLE_EATEN + "." + EATEN_COLUMN_LAST_EATEN +
-                        ", " + TABLE_EATEN + "." + EATEN_COLUMN_ID + // TODO: Unnecessary
+                        TABLE_FOOD + "." + FOOD_COLUMN_TYPE + ", " +
+                        TABLE_EATEN + "." + EATEN_COLUMN_LAST_EATEN +", " +
+                        TABLE_EATEN + "." + EATEN_COLUMN_ID + // TODO: Unnecessary - only for debugging
                         " FROM " + TABLE_FOOD + ", " + TABLE_EATEN +
                         " WHERE " +
                         where +
@@ -239,7 +244,7 @@ public class DatabaseConnection {
         MySqliteHelper.displayCursor(eatenCursor, false, "eatenCursor");
         if (eatenCursor != null && eatenCursor.moveToFirst()) {
             while (!eatenCursor.isAfterLast()) {
-                Food food = cursorToFood(eatenCursor, type);
+                Food food = cursorToFood(eatenCursor);
                 int id = food.getId();
                 if (foods.containsKey(id)) {
                     food = foods.get(id);
@@ -257,7 +262,8 @@ public class DatabaseConnection {
         Cursor foodCursor = database.rawQuery(
                 "SELECT " +
                         FOOD_COLUMN_ID + ", " +
-                        FOOD_COLUMN_NAME +
+                        FOOD_COLUMN_NAME + ", " +
+                        FOOD_COLUMN_TYPE +
                         " FROM " + TABLE_FOOD +
                         " WHERE " + where
                 , null);
@@ -265,7 +271,7 @@ public class DatabaseConnection {
 
         if (foodCursor != null && foodCursor.moveToFirst()) {
             while (!foodCursor.isAfterLast()) {
-                Food food = cursorToFood(foodCursor, type, false);
+                Food food = cursorToFood(foodCursor,false);
                 int id = food.getId();
                 if (!foods.containsKey(id)) {
                     foods.put(id, food);

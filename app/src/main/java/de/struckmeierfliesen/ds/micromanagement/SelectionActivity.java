@@ -115,7 +115,7 @@ public class SelectionActivity extends AppCompatActivity
     @Override
     public void onListFragmentInteraction(Food item) {
         dbConn.eatFood(item, date);
-        FoodFragment fragment = getFragmentByType(item.getType());
+        FoodFragment fragment = getFragmentForFood(item);
         if (fragment != null) {
             fragment.updateList();
         }
@@ -132,9 +132,14 @@ public class SelectionActivity extends AppCompatActivity
                         break;
                     case 1:
                         dbConn.hideFood(item.getId());
+                        item.setType(-item.getType());
+                        FoodFragment fragment = getFragmentForFood(item);
+                        if (fragment != null) {
+                            fragment.updateList();
+                        }
                         break;
                 }
-                FoodFragment fragment = getFragmentByType(item.getType());
+                FoodFragment fragment = getFragmentForFood(item);
                 if (fragment != null) {
                     fragment.updateList();
                 }
@@ -179,7 +184,8 @@ public class SelectionActivity extends AppCompatActivity
         }
     }
 
-    private FoodFragment getFragmentByType(int type) {
+    private FoodFragment getFragmentForFood(Food food) {
+        int type = food.isHidden() ? Food.HIDDEN : food.getType();
         List<Fragment> allFragments = getSupportFragmentManager().getFragments();
         if (allFragments != null) {
             for (Fragment fragment : allFragments) {
