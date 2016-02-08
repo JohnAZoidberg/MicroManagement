@@ -1,5 +1,6 @@
 package de.struckmeierfliesen.ds.micromanagement;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -9,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -19,6 +21,7 @@ import android.widget.Toast;
 import java.util.Date;
 import java.util.List;
 
+import de.struckmeierfliesen.ds.calendarpager.DateUtil;
 import de.struckmeierfliesen.ds.micromanagement.sqlite.DatabaseConnection;
 
 public class SelectionActivity extends AppCompatActivity
@@ -56,6 +59,9 @@ public class SelectionActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        //toolbar.setTitle(getString(R.string.selection_on, DateUtil.formatDate(date)));
+        ActionBar supportActionBar = getSupportActionBar();
+        if (supportActionBar != null) supportActionBar.setTitle(getString(R.string.selection_for, DateUtil.formatDateOrWeekday(date)));
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -99,15 +105,13 @@ public class SelectionActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_confirm) {
-            finish();
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_confirm:
+                finish();
+                return true;
+            case R.id.action_add_new_food:
+                showAddFoodDialog();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -123,15 +127,16 @@ public class SelectionActivity extends AppCompatActivity
 
     @Override
     public void onListFragmentLongInteraction(final Food item) {
-        Dialogue.chooseFromList(this, "Choose action", new String[] {"Undo 'eaten'", "Un-/Hide food", "Cancel"}, new Dialogue.OnChoiceSelectedListener() {
+        Dialogue.chooseFromList(this, "Choose action", new String[] {"Undo 'eaten'", "Un-/Hide food", "Cancel"}, new DialogInterface.OnClickListener() {
             @Override
-            public void onChoiceSelected(int choice) {
+            public void onClick(DialogInterface dialogInterface, int choice) {
                 switch (choice) {
                     case 0:
                         dbConn.unEatFood(item.getId());
                         break;
                     case 1:
                         dbConn.hideFood(item.getId());
+                        // Because we know the Food was hidden - this undoes it
                         item.setType(-item.getType());
                         FoodFragment fragment = getFragmentForFood(item);
                         if (fragment != null) {
@@ -195,5 +200,27 @@ public class SelectionActivity extends AppCompatActivity
             }
         }
         return null;
+    }
+
+    private void showAddFoodDialog() {
+        final int type = 1 << mViewPager.getCurrentItem();
+        if (type != Food.HIDDEN) {
+            Dialogue.askForInput(this, R.string.add_new_food, R.string.add, new Dialogue.OnInputSubmitListener<String>() {
+                @Override
+                public boolean onSubmit(View v, String input) {
+                    if (!input.isEmpty()) {
+                        Food newFood = dbConn.addFood(input, type);
+                        FoodFragment fragmentForFood = getFragmentForFood(newFood);
+                        if (fragmentForFood != null) {
+                            fragmentForFood.updateList();
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        } else {
+            Dialogue.alert(this, getString(R.string.not_addable_to_hidden));
+        }
     }
 }

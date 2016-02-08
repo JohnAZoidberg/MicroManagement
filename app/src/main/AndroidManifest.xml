@@ -28,7 +28,7 @@
         </activity>
         <activity
             android:name=".SelectionActivity"
-            android:label="@string/selection"
+            android:label="@string/selection_for"
             android:theme="@style/AppTheme.NoActionBar"
             android:noHistory="true">
         </activity>

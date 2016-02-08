@@ -14,12 +14,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class Dialogue {
-    public static void alert(Context context, String msg) {
+    private Dialogue() {}
+
+    public static void alert(Context context, Object msg) {
         alert(context, msg, false);
     }
 
-    public static void alert(Context context, String msg, boolean longLength) {
-        Toast.makeText(context, msg,
+    public static void alert(Context context, Object msg, boolean longLength) {
+        Toast.makeText(context, msg.toString(),
                 longLength ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT
         ).show();
     }
@@ -36,8 +38,8 @@ public class Dialogue {
     public static void askForConfirmation(@NonNull Context context, String title, @Nullable String message, @NonNull final View.OnClickListener onPositiveListener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context)
                 .setTitle(title)
-                .setPositiveButton(context.getString(R.string.yes), null)
-                .setNegativeButton(context.getString(R.string.no), null);
+                .setPositiveButton(android.R.string.yes, null)
+                .setNegativeButton(android.R.string.no, null);
         if (message != null) builder.setMessage(message);
         final AlertDialog dialog = builder.create();
 
@@ -70,9 +72,10 @@ public class Dialogue {
         input.setInputType(inputType);
         final AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle(title)
-                .setView(input)
+                .setView(input, 20, 20, 20, 20)
                 .setPositiveButton(positive, null)
-                .setNegativeButton(context.getString(R.string.cancel), null).create();
+                .setNegativeButton(R.string.cancel, null)
+                .create();
 
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
 
@@ -82,8 +85,8 @@ public class Dialogue {
                 b.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        onPositiveListener.onSubmit(v, input.getText().toString().trim());
-                        d.dismiss();
+                        boolean dismiss = onPositiveListener.onSubmit(v, input.getText().toString().trim());
+                        if (dismiss) d.dismiss();
                     }
                 });
             }
@@ -91,22 +94,15 @@ public class Dialogue {
         dialog.show();
     }
 
-    public static void chooseFromList(@NonNull Context context, String title, String[] choices, @NonNull final OnChoiceSelectedListener listener) {
+    public static void chooseFromList(@NonNull Context context, String title, String[] choices, @NonNull DialogInterface.OnClickListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title)
-                .setItems(choices, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        listener.onChoiceSelected(which);
-                    }
-                });
-        builder.create().show();
+                .setItems(choices, listener)
+                .create()
+                .show();
     }
 
     interface OnInputSubmitListener<T> {
-        void onSubmit(View v, T input);
-    }
-
-    interface OnChoiceSelectedListener {
-        void onChoiceSelected(int choice);
+        boolean onSubmit(View v, T input);
     }
 }

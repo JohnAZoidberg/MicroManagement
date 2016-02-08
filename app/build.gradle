@@ -8,8 +8,8 @@ android {
         applicationId "de.struckmeierfliesen.ds.micromanagement"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 22
-        versionName "0.2.2"
+        versionCode 30
+        versionName "0.3.0"
     }
     buildTypes {
         release {

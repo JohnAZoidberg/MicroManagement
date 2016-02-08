@@ -118,7 +118,7 @@ public class Food {
 
     public static IllegalArgumentException illegalFoodTypeExcpetion(int type)  {
         return new IllegalArgumentException(
-                "Type(" + type + ") has to be either Food.CARBS, Food.FATS, Food.FRUITS, Food.PROTEINS, Food.VEGGIES or Food.HIDDEN!"
+                "Type(" + type + ") has to be either Food.PROTEINS(1), Food.CARBS(2), Food.FATS(4), Food.FRUITS(8), Food.VEGGIES(16)!"
         );
     }
 

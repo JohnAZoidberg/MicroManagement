@@ -293,13 +293,15 @@ public class DatabaseConnection {
         close();
     }
 
-    public long addFood(String name) {
+    public Food addFood(String name, int type) {
+        if (!Food.isValidType(type)) throw Food.illegalFoodTypeExcpetion(type);
         open();
         ContentValues values = new ContentValues();
         values.put(FOOD_COLUMN_NAME, name);
-        long id = database.insert(TABLE_FOOD, null, values);
+        values.put(FOOD_COLUMN_TYPE, type);
+        int id = (int) database.insert(TABLE_FOOD, null, values);
         close();
-        return id;
+        return new Food(id, name, type);
     }
 
     public void clearHistory() {
